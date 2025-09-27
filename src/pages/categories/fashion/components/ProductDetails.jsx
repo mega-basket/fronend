@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import FashionCard from "./FashionCard";
+import FashionCard from "./ProductsCard";
 import { Heart } from "lucide-react";
 import { useGetProductById } from "../../../../api/component/productApi";
 
-const FashionDetails = () => {
+const ProductDetails = () => {
   const { id } = useParams();
   const { data: product, isLoading, error } = useGetProductById(id);
+  console.log("product details:", product);
+
   const [mainImage, setMainImage] = useState(null);
 
   useEffect(() => {
@@ -47,7 +49,7 @@ const FashionDetails = () => {
           <img
             src={mainImage}
             alt={product.name}
-            className="w-full max-w-md object-cover rounded"
+            className="w-96 max-w-md object-cover rounded"
           />
         </div>
 
@@ -93,4 +95,4 @@ const FashionDetails = () => {
   );
 };
 
-export default FashionDetails;
+export default ProductDetails;

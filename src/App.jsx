@@ -6,8 +6,8 @@ import Layout from "./components/layout/Layout";
 import SignUp from "./pages/login/SignUp";
 import Login from "./pages/login/Login";
 import { Toaster } from "react-hot-toast";
-import Fashion from "./pages/categories/fashion/Fashion";
-import FashionDetails from "./pages/categories/fashion/components/FashionDetails";
+import ProductDetails from "./pages/categories/fashion/components/ProductDetails";
+import Products from "./pages/categories/fashion/Products";
 
 function App() {
   // JS: prevent scroll increment
@@ -30,8 +30,8 @@ function App() {
           <Route element={<Layout />}>
             <Route path="/" element={<Home />} />
             <Route path="/profile" element={<Profile />} />
-            <Route path="/fashion" element={<Fashion />} />
-            <Route path="/fashion/:id" element={<FashionDetails />} />
+            <Route path="/products" element={<Products />} />
+            <Route path="/products/:id" element={<ProductDetails />} />
           </Route>
 
           {/* Pages without Layout */}

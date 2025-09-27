@@ -19,7 +19,23 @@ export const useGetProductById = (productId) => {
       const res = await apiService.get(
         `${apiPath.getProductsById}${productId}`
       );
-      return res.data.product
+      console.log("res data:", res.data);
+
+      return res.data.product;
+    },
+  });
+};
+
+export const useProductsByCategory = (categoryId) => {
+  return useQuery({
+    queryKey: ["productsByCategory", categoryId], // cache by category
+    enabled: !!categoryId, // skip until we have an id
+    queryFn: async () => {
+      const res = await apiService.get(
+        `${apiPath.getProducts}?categoryId=${categoryId}`
+      );
+
+      return res.data.product || [];
     },
   });
 };

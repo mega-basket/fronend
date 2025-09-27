@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 const CategoryGrid = ({ categories }) => {
   const navigate = useNavigate();
+
   return (
     <section id="categories" className="mx-auto max-w-7xl px-4 py-12 md:py-16">
       {/* Header */}
@@ -24,13 +25,13 @@ const CategoryGrid = ({ categories }) => {
           <div
             key={cat._id}
             className="group relative overflow-hidden rounded-2xl glass soft-shadow hover:-translate-y-0.5 transition cursor-pointer"
-            onClick={() => navigate(`/fashion/${cat._id}`)}
+            onClick={() => navigate(`/products?categoryId=${cat._id}`)}
           >
             <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 to-transparent pointer-events-none"></div>
             <img
               src={cat.categoryImage} // ✅ fixed
               alt={cat.categoryName}
-              className="h-36 w-full object-cover"
+              className="h-36 w-full object-cover hover:scale-105 transition"
             />
             <div className="absolute inset-x-0 bottom-0 p-3">
               <div className="flex items-center justify-between">

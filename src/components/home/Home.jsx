@@ -1,12 +1,9 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
 import Hero from "../Hero";
 import CategoryGrid from "../CategoryGrid";
 import { useGetCategory } from "../../api/component/Category";
 
 const Home = () => {
   const { data: categories, isLoading, error } = useGetCategory(); // Destructure for clarity
-  const navigate = useNavigate();
 
   if (isLoading)
     return <p className="text-center mt-10">Loading categories...</p>;

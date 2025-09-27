@@ -4,9 +4,10 @@ import { apiPath } from "../apiPath";
 
 export const useGetCategory = () => {
   return useQuery({
+    queryKey: ["getCategory"],
     queryFn: async () => {
       const res = await apiService.get(`${apiPath.getCategory}`);
-      return res.data.category;
+      return res.data.categories || [];
     },
   });
 };
