@@ -4,6 +4,8 @@ import { BiSearch, BiUser } from "react-icons/bi";
 import { FaHeart, FaShoppingCart, FaUser } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { Heart, ShoppingCart } from "lucide-react";
+import { useGetWishlist } from "../api/component/useWishlist";
+import { useGetToCart } from "../api/component/Cart";
 
 function Header() {
   const desktopSearchRef = useRef(null);
@@ -11,6 +13,9 @@ function Header() {
   const [isLogin, setIsLogin] = useState(false);
 
   const navigate = useNavigate();
+  const { data: wishlist } = useGetWishlist();
+  const { data: cartData } = useGetToCart();
+  console.log("cartData", cartData?.length);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -56,17 +61,26 @@ function Header() {
               <button
                 className="relative rounded-xl p-2 hover:bg-blue-500/30"
                 aria-label="Wishlist"
+                onClick={() => navigate("/wishlist")}
               >
                 <Heart size={24} />
+                {wishlist?.length > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center w-5 h-5 rounded-full bg-rose-600 text-white text-[11px] font-semibold">
+                    {wishlist?.length}
+                  </span>
+                )}
               </button>
               <button
-                className="relative rounded-xl p-2 hover:bg-white/30"
+                onClick={() => navigate("/cart")}
+                className="relative rounded-xl p-2 hover:bg-blue-500/30"
                 aria-label="Cart"
               >
                 <ShoppingCart size={24} />
-                <span className="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center w-5 h-5 rounded-full bg-rose-600 text-white text-[11px] font-semibold">
-                  1
-                </span>
+                {cartData?.length > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center w-5 h-5 rounded-full bg-rose-600 text-white text-[11px] font-semibold">
+                    {cartData?.length}
+                  </span>
+                )}
               </button>
               {!isLogin ? (
                 <button

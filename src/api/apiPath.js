@@ -9,4 +9,11 @@ export const apiPath = {
   getProductsById: "products/",
 
   getCategory: "category",
+
+  addToWishlist: "wishlist/add",
+  getWishlist: "wishlist",
+  removeWishlist: "wishlist/remove",
+
+  addToCart: "cart/add",
+  getCart: "cart",
 };

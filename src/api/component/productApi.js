@@ -19,7 +19,6 @@ export const useGetProductById = (productId) => {
       const res = await apiService.get(
         `${apiPath.getProductsById}${productId}`
       );
-      console.log("res data:", res.data);
 
       return res.data.product;
     },
