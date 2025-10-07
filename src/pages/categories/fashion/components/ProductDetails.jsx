@@ -1,34 +1,52 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { Heart, Star } from "lucide-react";
+import { Heart, ShoppingBasket, ShoppingCart, Star } from "lucide-react";
+import toast from "react-hot-toast";
+
 import { useGetProductById } from "../../../../api/component/productApi";
 import {
   useGetWishlist,
   useRemoveFromWishlist,
   useWishlist,
 } from "../../../../api/component/useWishlist";
-import toast from "react-hot-toast";
-import { useAddToCart } from "../../../../api/component/Cart";
+import {
+  useGetToCart,
+  useAddToCart,
+  useRemoveFromCart,
+} from "../../../../api/component/Cart";
 
 const ProductDetails = () => {
-  const { id } = useParams();
+  const { slug } = useParams();
+  const [mainImage, setMainImage] = useState(null);
   const [isClicked, setIsClicked] = useState(false);
-  const { data: product, isLoading, error } = useGetProductById(id);
+
+  // Product
+  const { data: product, isLoading, error } = useGetProductById(slug);
+
+  // Wishlist
   const addWishlist = useWishlist();
   const removeWishlist = useRemoveFromWishlist();
   const { data: wishlist = [], isLoading: wlLoading } = useGetWishlist();
-  const { data: cartData = [], isLoading: cartLoading } = useAddToCart();
-  const addToCart = useAddToCart();
-  const [mainImage, setMainImage] = useState(null);
 
+  // Cart
+  const { data: cartData = [], isLoading: cartLoading } = useGetToCart();
+  const addToCart = useAddToCart();
+  const removeFromCart = useRemoveFromCart();
+
+  // Determine wishlist & cart status
   const isWishlisted = product
     ? wishlist.some((item) => item._id === product._id)
     : false;
+  const isInCart = product
+    ? cartData.some((item) => item._id === product._id)
+    : false;
 
+  // Set main image
   useEffect(() => {
     if (product?.thumbnail) setMainImage(product.thumbnail);
   }, [product]);
 
+  // Wishlist toggle
   const handleWishlistToggle = () => {
     if (!product) return;
     setIsClicked(true);
@@ -47,20 +65,16 @@ const ProductDetails = () => {
     }
   };
 
-  const isInCart = cartData
-    ? cartData?.some((item) => item._id === product?._id)
-    : false;
-  console.log("isInCart", isInCart);
-
+  // Cart toggle
   const handleCartToggle = () => {
     if (!product) return;
     setIsClicked(true);
     setTimeout(() => setIsClicked(false), 600);
 
     if (isInCart) {
-      addToCart.mutate(
+      removeFromCart.mutate(
         { productId: product._id },
-        { onSuccess: () => toast.success("Already in cart") }
+        { onSuccess: () => toast.success("Removed from cart") }
       );
     } else {
       addToCart.mutate(
@@ -70,21 +84,19 @@ const ProductDetails = () => {
     }
   };
 
-  if (isLoading || wlLoading)
+  if (isLoading || wlLoading || cartLoading)
     return <p className="text-center mt-10">Loading…</p>;
-  if (error) return <p className="text-center mt-10">Error loading product</p>;
-  if (!product) return <p className="text-center mt-10">Product not found</p>;
+  if (error || !product)
+    return <p className="text-center mt-10">Product not found</p>;
 
   const allImages = [product.thumbnail, ...(product.images || [])];
-
   const formatDate = (dateStr) => dateStr?.split("T")[0];
 
   return (
     <div className="max-w-7xl mx-auto p-6">
       <div className="flex flex-col lg:flex-row gap-12">
-        {/* Left: Images */}
+        {/* Images */}
         <div className="flex gap-6">
-          {/* Thumbnails */}
           <div
             className={`flex flex-col gap-4 ${
               allImages.length > 4 ? "overflow-y-auto max-h-[70vh] pr-2" : ""
@@ -104,8 +116,6 @@ const ProductDetails = () => {
               />
             ))}
           </div>
-
-          {/* Main Image */}
           <div className="relative">
             <img
               src={mainImage}
@@ -120,9 +130,8 @@ const ProductDetails = () => {
           </div>
         </div>
 
-        {/* Right: Product Info */}
+        {/* Product Info */}
         <div className="flex-1 flex flex-col gap-5">
-          {/* Title & Rating */}
           <h1 className="text-3xl font-bold">{product.productName}</h1>
           <div className="flex items-center gap-2">
             <Star className="text-yellow-400" />
@@ -131,8 +140,6 @@ const ProductDetails = () => {
               ({product.totalReviews} reviews)
             </span>
           </div>
-
-          {/* Brand */}
           {product.brand && (
             <p className="text-gray-600">Brand: {product.brand}</p>
           )}
@@ -144,18 +151,15 @@ const ProductDetails = () => {
                 Rs.{product.price}
               </span>
             )}
-            {product.discountPrice ? (
-              <span className="text-2xl font-bold text-green-600">
-                Rs.{product.discountPrice}
-              </span>
-            ) : (
-              <span className="text-2xl font-bold text-gray-800">
-                Rs.{product.price}
-              </span>
-            )}
+            <span
+              className={`text-2xl font-bold ${
+                product.discountPrice ? "text-green-600" : "text-gray-800"
+              }`}
+            >
+              Rs.{product.discountPrice || product.price}
+            </span>
           </div>
 
-          {/* Description */}
           {product.description && (
             <p className="text-gray-700">{product.description}</p>
           )}
@@ -202,17 +206,6 @@ const ProductDetails = () => {
             )}
           </div>
 
-          {/* Quantity Selector */}
-          <div className="flex items-center gap-3 mt-4">
-            <label className="font-semibold">Quantity:</label>
-            <input
-              type="number"
-              min="1"
-              defaultValue={1}
-              className="border rounded p-2 w-24 text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
           {/* Action Buttons */}
           <div className="flex gap-4 mt-6 flex-wrap">
             <button className="bg-blue-600 text-white px-6 py-3 rounded-full hover:bg-blue-700 transition font-semibold">
@@ -229,9 +222,14 @@ const ProductDetails = () => {
             </button>
             <button
               onClick={handleCartToggle}
-              className="bg-blue-100 text-blue-700 px-6 py-3 rounded-full hover:bg-blue-200 transition font-semibold"
+              className={`px-6 py-3 rounded-full flex items-center font-semibold transition ${
+                isInCart
+                  ? "bg-red-500 text-white hover:bg-red-600"
+                  : "bg-blue-100 text-blue-700 hover:bg-blue-200"
+              }`}
             >
-              Add to Cart
+              <ShoppingCart className="inline mr-2" />
+              {isInCart ? "Remove from Cart" : "Add to Cart"}
             </button>
           </div>
         </div>

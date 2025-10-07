@@ -7,7 +7,6 @@ export const useGetToCart = () => {
     queryKey: ["addToCart"],
     queryFn: async () => {
       const res = await apiService.get(apiPath.getCart);
-      console.log("res data", res);
       return res.data.cart;
     },
   });
@@ -19,6 +18,20 @@ export const useAddToCart = () => {
     mutationKey: ["addToCart"],
     mutationFn: async (data) => {
       const res = await apiService.post(apiPath.addToCart, data);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryCLient.invalidateQueries({ queryKey: ["addToCart"] });
+    },
+  });
+};
+
+export const useRemoveFromCart = () => {
+  const queryCLient = useQueryClient();
+  return useMutation({
+    mutationKey: ["addToCart"],
+    mutationFn: async (data) => {
+      const res = await apiService.post(apiPath.removeFromCart, data);
       return res.data;
     },
     onSuccess: () => {

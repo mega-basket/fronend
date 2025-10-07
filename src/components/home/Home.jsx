@@ -1,9 +1,13 @@
 import Hero from "../Hero";
 import CategoryGrid from "../CategoryGrid";
 import { useGetCategory } from "../../api/component/Category";
+import PopulerProduct from "../../pages/popularProduct/PopularProduct";
+import { usePopularProducts } from "../../api/component/productApi";
 
 const Home = () => {
   const { data: categories, isLoading, error } = useGetCategory(); // Destructure for clarity
+  const { data: popularProducts } = usePopularProducts();
+  console.log("popularProducts", popularProducts);
 
   if (isLoading)
     return <p className="text-center mt-10">Loading categories...</p>;
@@ -14,8 +18,10 @@ const Home = () => {
     <div>
       {/* Hero Section */}
       <Hero />
-
-      <CategoryGrid categories={categories} />
+      <div className="mx-auto max-w-7xl">
+        <CategoryGrid categories={categories} />
+        <PopulerProduct popularProducts={popularProducts} />
+      </div>
     </div>
   );
 };

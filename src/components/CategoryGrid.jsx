@@ -5,7 +5,7 @@ const CategoryGrid = ({ categories }) => {
   const navigate = useNavigate();
 
   return (
-    <section id="categories" className="mx-auto max-w-7xl px-4 py-12 md:py-16">
+    <section id="categories" className=" px-4 py-12 md:py-16">
       {/* Header */}
       <div className="flex items-end justify-between gap-3">
         <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight">

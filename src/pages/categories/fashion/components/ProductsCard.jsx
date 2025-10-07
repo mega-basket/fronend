@@ -10,12 +10,12 @@ import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 
 const ProductsCard = ({ items }) => {
-  const { id } = useParams();
+  const { slug } = useParams();
   const [isHovered, setIsHovered] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [isClicked, setIsClicked] = useState(false);
   const navigate = useNavigate();
-  const { data: product } = useGetProductById(id);
+  const { data: product } = useGetProductById(slug);
 
   const addWishlist = useWishlist();
   const removeWishlist = useRemoveFromWishlist();
@@ -157,7 +157,7 @@ const ProductsCard = ({ items }) => {
           {/* Action Buttons */}
           <div className="flex gap-3">
             <button
-              onClick={() => navigate(`/products/${items._id}`)}
+              onClick={() => navigate(`/products/${items.slug}`)}
               className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 
                              rounded-xl font-semibold flex items-center justify-center gap-2 
                              hover:from-blue-700 hover:to-purple-700 transform hover:scale-105 

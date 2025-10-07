@@ -21,22 +21,18 @@ function Hero() {
               search.
             </p>
             <div className="mt-6 flex flex-wrap gap-3 z-30 w-full">
-              <button
-                className="cursor-pointer items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 text-white font-semibold hover:bg-white/90"
-              >
+              <button className="cursor-pointer items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 text-white font-semibold hover:bg-white/90">
                 Start Exploring
               </button>
               <button
-                onClick={() => console.log("click")
-                
-                }
+                onClick={() => console.log("click")}
                 className="cursor-pointer items-center gap-2 px-4 py-2.5 rounded-xl border border-white/50 text-black font-semibold hover:bg-blue-500/10"
               >
                 View Deals
               </button>
             </div>
           </div>
-            {/* <div className="glass rounded-3xl p-5 md:p-6 soft-shadow">
+          {/* <div className="glass rounded-3xl p-5 md:p-6 soft-shadow">
               <div className="grid grid-cols-3 gap-3">
                 <div className="rounded-2xl bg-white/70 dark:bg-white/10 h-28"></div>
                 <div className="rounded-2xl bg-white/70 dark:bg-white/10 h-28"></div>

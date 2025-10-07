@@ -11,14 +11,12 @@ export const GetProductApi = () => {
   });
 };
 
-export const useGetProductById = (productId) => {
+export const useGetProductById = (slug) => {
   return useQuery({
-    queryKey: ["getProduct", productId], // cache key includes ID
-    enabled: !!productId, // only run if ID is truthy
+    queryKey: ["getProduct", slug], // cache key includes ID
+    enabled: !!slug, // only run if ID is truthy
     queryFn: async () => {
-      const res = await apiService.get(
-        `${apiPath.getProductsById}${productId}`
-      );
+      const res = await apiService.get(`${apiPath.getProductsById}${slug}`);
 
       return res.data.product;
     },
@@ -34,6 +32,29 @@ export const useProductsByCategory = (categoryId) => {
         `${apiPath.getProducts}?categoryId=${categoryId}`
       );
 
+      return res.data.product || [];
+    },
+  });
+};
+
+export const usePopularProducts = () => {
+  return useQuery({
+    queryKey: ["popularProducts"],
+    queryFn: async () => {
+      const res = await apiService.get(`${apiPath.getPopularProducts}`);
+      return res.data.data || [];
+    },
+  });
+};
+
+export const useSearchProducts = (query) => {
+  return useQuery({
+    queryKey: ["searchProducts", query],
+    enabled: !!query, // only run if query is not empty
+    queryFn: async () => {
+      const res = await apiService.get(
+        `${apiPath.getProducts}?search=${query}`
+      );
       return res.data.product || [];
     },
   });

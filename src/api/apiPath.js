@@ -7,6 +7,7 @@ export const apiPath = {
 
   getProducts: "products",
   getProductsById: "products/",
+  getPopularProducts: "products/popular",
 
   getCategory: "category",
 
@@ -16,4 +17,5 @@ export const apiPath = {
 
   addToCart: "cart/add",
   getCart: "cart",
+  removeFromCart: "cart/remove",
 };
