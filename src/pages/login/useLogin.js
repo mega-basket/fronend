@@ -29,7 +29,7 @@ export const useLogin = () => {
     onSuccess: (data) => {
       toast.success("Login Successfull");
       localStorage.setItem("user", JSON.stringify(data));
-      localStorage.setItem("token", data.token);
+      localStorage.setItem("token", data.accessToken);
 
       navigate("/");
     },

@@ -102,7 +102,7 @@ const ProductsCard = ({ items }) => {
             />
 
             <img
-              src={items.thumbnail || "/api/placeholder/300/300"}
+              src={items.variants?.[0]?.thumbnail || "/api/placeholder/300/300"}
               alt={items.productName}
               className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110"
             />

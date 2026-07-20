@@ -26,6 +26,19 @@ export const useAddToCart = () => {
   });
 };
 
+export const useUpdateCartQuantity = () => {
+  const queryCLient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data) => {
+      const res = await apiService.patch(apiPath.updateCartQuantity, data);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryCLient.invalidateQueries({ queryKey: ["addToCart"] });
+    },
+  });
+};
+
 export const useRemoveFromCart = () => {
   const queryCLient = useQueryClient();
   return useMutation({

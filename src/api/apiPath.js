@@ -18,4 +18,5 @@ export const apiPath = {
   addToCart: "cart/add",
   getCart: "cart",
   removeFromCart: "cart/remove",
+  updateCartQuantity: "cart/update-quantity",
 };

@@ -8,7 +8,7 @@ apiService.interceptors.request.use(
     (config)=>{
         // autometically get token from localstorage
         const token = localStorage.getItem('token')
-        if (token) {
+        if (token && token !== "undefined") {
             config.headers.Authorization = `Bearer ${token}`
         } 
         return config

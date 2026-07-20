@@ -6,7 +6,7 @@ export const GetProductApi = () => {
   return useQuery({
     queryFn: async () => {
       const res = await apiService.get(`${apiPath.getProducts}`);
-      return res.data.product;
+      return res.data.products;
     },
   });
 };
@@ -32,7 +32,7 @@ export const useProductsByCategory = (categoryId) => {
         `${apiPath.getProducts}?categoryId=${categoryId}`
       );
 
-      return res.data.product || [];
+      return res.data.products || [];
     },
   });
 };
@@ -42,7 +42,7 @@ export const usePopularProducts = () => {
     queryKey: ["popularProducts"],
     queryFn: async () => {
       const res = await apiService.get(`${apiPath.getPopularProducts}`);
-      return res.data.data || [];
+      return res.data.products || [];
     },
   });
 };
@@ -55,7 +55,7 @@ export const useSearchProducts = (query) => {
       const res = await apiService.get(
         `${apiPath.getProducts}?search=${query}`
       );
-      return res.data.product || [];
+      return res.data.products || [];
     },
   });
 };

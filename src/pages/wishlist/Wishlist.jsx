@@ -47,27 +47,36 @@ const Wishlist = () => {
           className="flex items-center p-2 border cursor-pointer rounded-lg bg-white"
         >
           <div
-            className="flex gap-2 bg-white/50 rounded"
-            onClick={() => navigate(`/products/${item._id}`)}
+            className="flex gap-3 items-center bg-white/50 rounded"
+            onClick={() => navigate(`/products/${item.slug}`)}
           >
             <img
               className="w-24 h-24 object-cover border rounded-lg"
-              src={item.thumbnail}
+              src={item.variants?.[0]?.thumbnail}
               alt={item.productName}
             />
             <div>
-              <div>
-                <p>
-                  Name:{" "}
-                  <span className="font-semibold">{item.productName}</span>
-                </p>
-                <p className="flex gap-2">
-                  <Star fill="yellow" stroke="yellow" /> {item.avgRating} (
-                  {item.totalReviews} Reviews)
-                </p>
-              </div>
-              <p>
-                Price: <span className="font-semibold">{item.price} Rs.</span>
+              <p className="font-semibold">{item.productName}</p>
+              {item.brand && (
+                <p className="text-sm text-gray-600">{item.brand}</p>
+              )}
+              <p className="flex items-center gap-1 text-sm text-gray-600">
+                <Star size={16} fill="gold" stroke="gold" /> {item.avgRating} (
+                {item.totalReviews} Reviews)
+              </p>
+              <p className="mt-1">
+                {item.discountPrice && item.discountPrice < item.price ? (
+                  <>
+                    <span className="line-through text-gray-400 mr-2">
+                      Rs.{item.price}
+                    </span>
+                    <span className="font-semibold text-green-600">
+                      Rs.{item.discountPrice}
+                    </span>
+                  </>
+                ) : (
+                  <span className="font-semibold">Rs.{item.price}</span>
+                )}
               </p>
             </div>
           </div>
