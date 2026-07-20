@@ -3,10 +3,14 @@ import { useAddToCart, useGetToCart } from "../../api/component/Cart";
 import { useGetProductById } from "../../api/component/productApi";
 import { useParams } from "react-router-dom";
 import toast from "react-hot-toast";
+import { useIsLoggedIn } from "../../hooks/useAuth";
+import AuthPromptModal from "../../components/ui/AuthPromptModal";
 
 const PopularProducts = ({ popularProducts }) => {
   const { slug } = useParams();
   const [isClicked, setIsClicked] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const isLoggedIn = useIsLoggedIn();
 
   // Fetch product details if you need it (optional)
   const { data: product, isLoading, error } = useGetProductById(slug);
@@ -18,6 +22,7 @@ const PopularProducts = ({ popularProducts }) => {
   const addToCart = useAddToCart();
 
   const handleCartToggle = (product) => {
+    if (!isLoggedIn) return setAuthModalOpen(true);
     if (!product) return;
 
     setIsClicked(true);
@@ -72,7 +77,7 @@ const PopularProducts = ({ popularProducts }) => {
               </h3>
               <p className="text-gray-500 text-sm mt-1">₹{prod.price}</p>
               <button
-                onClick={handleCartToggle}
+                onClick={() => handleCartToggle(prod)}
                 className={`mt-3 w-full bg-blue-600 text-white text-sm py-1.5 rounded-lg hover:bg-blue-700 transition ${
                   isClicked ? "scale-95" : ""
                 }`}
@@ -83,6 +88,11 @@ const PopularProducts = ({ popularProducts }) => {
           </div>
         ))}
       </div>
+
+      <AuthPromptModal
+        open={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+      />
     </div>
   );
 };

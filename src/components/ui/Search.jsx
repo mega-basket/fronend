@@ -29,11 +29,11 @@ const SearchInput = () => {
 
     if (e.key === "ArrowDown") {
       setHighlightedIndex((prev) =>
-        prev < searchResults.length - 1 ? prev + 1 : 0
+        prev < searchResults.length - 1 ? prev + 1 : 0,
       );
     } else if (e.key === "ArrowUp") {
       setHighlightedIndex((prev) =>
-        prev > 0 ? prev - 1 : searchResults.length - 1
+        prev > 0 ? prev - 1 : searchResults.length - 1,
       );
     } else if (e.key === "Enter") {
       if (highlightedIndex >= 0) {
@@ -69,8 +69,8 @@ const SearchInput = () => {
               }`}
             >
               <img
-                src={item.thumbnail}
-                alt=""
+                src={item.variants[0].thumbnail}
+                alt={item.productName}
                 className="w-12 h-12 object-cover rounded"
               />
               <div>

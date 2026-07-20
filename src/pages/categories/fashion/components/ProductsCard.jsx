@@ -1,202 +1,252 @@
-import React, { useState } from "react";
-import { Heart, ShoppingCart, Eye, Star } from "lucide-react";
+import React, { useState, useMemo } from "react";
+import { Heart, ShoppingBag, Eye, Star } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import {
   useGetWishlist,
   useRemoveFromWishlist,
   useWishlist,
 } from "../../../../api/component/useWishlist";
-import { useGetProductById } from "../../../../api/component/productApi";
-import { useNavigate, useParams } from "react-router-dom";
-import toast from "react-hot-toast";
+import { useIsLoggedIn } from "../../../../hooks/useAuth";
+import AuthPromptModal from "../../../../components/ui/AuthPromptModal";
 
-const ProductsCard = ({ items }) => {
-  const { slug } = useParams();
-  const [isHovered, setIsHovered] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(false);
-  const [isClicked, setIsClicked] = useState(false);
+/**
+ * ProductsCard
+ * ------------
+ * Production-grade product card.
+ * - Wishlist state is derived from `items._id` (this card's product), not the URL.
+ * - Single source of truth for favorite state (server via useGetWishlist).
+ * - Buttons disable while mutations are in-flight.
+ * - Quick-view + wishlist float in on hover for desktop, and are always
+ *   visible on touch devices (no hover on mobile).
+ */
+const ProductsCard = ({ items, onQuickView }) => {
   const navigate = useNavigate();
-  const { data: product } = useGetProductById(slug);
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const isLoggedIn = useIsLoggedIn();
 
   const addWishlist = useWishlist();
   const removeWishlist = useRemoveFromWishlist();
   const { data: wishlist = [] } = useGetWishlist();
 
-  const isWishlisted = product
-    ? wishlist.some((item) => item._id === product._id)
-    : false;
+  const isWishlisted = useMemo(
+    () => wishlist.some((w) => w._id === items?._id),
+    [wishlist, items?._id]
+  );
 
-  const handleWishlistToggle = () => {
-    if (!product) return;
-    setIsClicked(true);
-    setTimeout(() => setIsClicked(false), 600);
+  const isMutating = addWishlist.isPending || removeWishlist.isPending;
+
+  const discountPct = useMemo(() => {
+    if (!items?.price || !items?.discountPrice) return 0;
+    return Math.round(((items.price - items.discountPrice) / items.price) * 100);
+  }, [items?.price, items?.discountPrice]);
+
+  const rating = items?.rating ?? 4.8;
+  const ratingCount = items?.ratingCount;
+  const thumbnail = items?.variants?.[0]?.thumbnail || "/api/placeholder/600/600";
+
+  const handleWishlistToggle = (e) => {
+    e.stopPropagation();
+    if (!isLoggedIn) return setAuthModalOpen(true);
+    if (!items?._id || isMutating) return;
 
     if (isWishlisted) {
       removeWishlist.mutate(
-        { productId: product._id },
-        { onSuccess: () => toast.success("Removed from wishlist") }
+        { productId: items._id },
+        {
+          onSuccess: () => toast.success("Removed from wishlist"),
+          onError: () => toast.error("Couldn't update wishlist"),
+        }
       );
     } else {
       addWishlist.mutate(
-        { productId: product._id },
-        { onSuccess: () => toast.success("Added to wishlist") }
+        { productId: items._id },
+        {
+          onSuccess: () => toast.success("Added to wishlist"),
+          onError: () => toast.error("Couldn't update wishlist"),
+        }
       );
     }
   };
 
+  const goToProduct = () => navigate(`/products/${items.slug}`);
+
   return (
-    <div className="group relative">
-      <div
-        className="relative overflow-hidden bg-gradient-to-br from-white via-gray-50 to-gray-100 rounded-3xl 
-                   shadow-lg hover:shadow-2xl transition-all duration-500 ease-out transform hover:scale-102
-                   cursor-pointer w-80 border border-gray-100 hover:border-gray-200"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+    <article
+      className="group relative flex w-full max-w-xs flex-col overflow-hidden rounded-2xl border border-neutral-200/80 bg-white transition-shadow duration-200 hover:shadow-[0_8px_30px_-12px_rgba(0,0,0,0.12)] focus-within:shadow-[0_8px_30px_-12px_rgba(0,0,0,0.12)]"
+      aria-label={items?.productName}
+    >
+      {/* Media */}
+      <button
+        type="button"
+        onClick={goToProduct}
+        className="relative block aspect-square w-full overflow-hidden bg-neutral-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2"
+        aria-label={`View ${items?.productName}`}
       >
-        {/* Floating Action Buttons */}
-        <div
-          className={`absolute top-4 right-4 z-10 flex flex-col gap-2 transition-all duration-300 ${
-            isHovered ? "translate-x-0 opacity-100" : "translate-x-8 opacity-0"
+        {/* Skeleton */}
+        {!imgLoaded && (
+          <div className="absolute inset-0 animate-pulse bg-neutral-100" />
+        )}
+
+        <img
+          src={thumbnail}
+          alt={items?.productName || "Product image"}
+          loading="lazy"
+          onLoad={() => setImgLoaded(true)}
+          className={`h-full w-full object-cover transition-[opacity,transform] duration-500 ease-out group-hover:scale-[1.03] ${
+            imgLoaded ? "opacity-100" : "opacity-0"
           }`}
-        >
-          <button
-            onClick={() => setIsFavorite(!isFavorite)}
-            className={`p-2 rounded-full backdrop-blur-sm border transition-all duration-200 hover:scale-110 ${
-              isFavorite
-                ? "bg-red-500 text-white border-red-500"
-                : "bg-white/80 text-gray-600 border-gray-200 hover:bg-red-50 hover:text-red-500"
-            }`}
+        />
+
+        {/* Discount badge */}
+        {discountPct > 0 && (
+          <span className="absolute left-3 top-3 rounded-full bg-neutral-900 px-2.5 py-1 text-[11px] font-semibold tracking-wide text-white">
+            {discountPct}% OFF
+          </span>
+        )}
+
+        {/* Floating actions – visible on hover (desktop) & always on touch */}
+        <div className="absolute right-3 top-3 flex flex-col gap-2 opacity-100 transition-opacity duration-200 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100">
+          <IconButton
+            label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
+            onClick={handleWishlistToggle}
+            disabled={isMutating}
+            active={isWishlisted}
           >
-            <Heart size={16} fill={isFavorite ? "currentColor" : "none"} />
-          </button>
-          <button
-            className="p-2 rounded-full bg-white/80 text-gray-600 border border-gray-200 
-                           backdrop-blur-sm hover:bg-blue-50 hover:text-blue-500 transition-all duration-200 hover:scale-110"
-          >
-            <Eye size={16} />
-          </button>
+            <Heart
+              size={16}
+              className={isWishlisted ? "fill-current" : ""}
+              strokeWidth={2}
+            />
+          </IconButton>
+
+          {onQuickView && (
+            <IconButton
+              label="Quick view"
+              onClick={(e) => {
+                e.stopPropagation();
+                onQuickView(items);
+              }}
+            >
+              <Eye size={16} strokeWidth={2} />
+            </IconButton>
+          )}
+        </div>
+      </button>
+
+      {/* Body */}
+      <div className="flex flex-1 flex-col gap-3 p-4">
+        {/* Rating */}
+        <div className="flex items-center gap-1.5 text-xs text-neutral-500">
+          <div className="flex items-center gap-0.5" aria-label={`Rated ${rating} out of 5`}>
+            {[0, 1, 2, 3, 4].map((i) => (
+              <Star
+                key={i}
+                size={13}
+                className={
+                  i < Math.round(rating)
+                    ? "fill-amber-400 text-amber-400"
+                    : "fill-neutral-200 text-neutral-200"
+                }
+              />
+            ))}
+          </div>
+          <span className="tabular-nums">
+            {rating.toFixed(1)}
+            {ratingCount ? ` (${ratingCount.toLocaleString()})` : ""}
+          </span>
         </div>
 
-        {/* Discount Badge */}
-        {items.discountPrice && (
-          <div className="absolute top-4 left-4 z-10">
-            <div className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-3 py-1 rounded-full text-sm font-semibold shadow-lg">
-              {Math.round(
-                ((items.price - items.discountPrice) / items.price) * 100
-              )}
-              % OFF
-            </div>
+        {/* Title */}
+        <h3
+          className="text-sm font-medium leading-snug text-neutral-900"
+          style={{
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+          }}
+          title={items?.productName}
+        >
+          {items?.productName}
+        </h3>
+
+        {/* Price */}
+        {items?.price != null && (
+          <div className="flex items-baseline gap-2">
+            {items.discountPrice ? (
+              <>
+                <span className="text-lg font-semibold tracking-tight text-neutral-900 tabular-nums">
+                  ₹{items.discountPrice.toLocaleString("en-IN")}
+                </span>
+                <span className="text-sm text-neutral-400 line-through tabular-nums">
+                  ₹{items.price.toLocaleString("en-IN")}
+                </span>
+              </>
+            ) : (
+              <span className="text-lg font-semibold tracking-tight text-neutral-900 tabular-nums">
+                ₹{items.price.toLocaleString("en-IN")}
+              </span>
+            )}
           </div>
         )}
 
-        {/* Image Container */}
-        <div className="relative p-6 pb-2">
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 aspect-square">
-            {/* Shimmer effect background */}
-            <div
-              className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent 
-                           transform -skew-x-12 transition-transform duration-1000 ${
-                             isHovered
-                               ? "translate-x-full"
-                               : "-translate-x-full"
-                           }`}
+        {/* Actions */}
+        <div className="mt-auto flex items-center gap-2 pt-1">
+          <button
+            type="button"
+            onClick={goToProduct}
+            className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-neutral-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2 active:bg-neutral-950"
+          >
+            <ShoppingBag size={16} strokeWidth={2.2} />
+            Buy now
+          </button>
+
+          <button
+            type="button"
+            onClick={handleWishlistToggle}
+            disabled={isMutating}
+            aria-pressed={isWishlisted}
+            aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
+            className={`inline-flex h-10 w-10 items-center justify-center rounded-lg border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2 disabled:opacity-60 ${
+              isWishlisted
+                ? "border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100"
+                : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300 hover:bg-neutral-50"
+            }`}
+          >
+            <Heart
+              size={16}
+              strokeWidth={2}
+              className={isWishlisted ? "fill-current" : ""}
             />
-
-            <img
-              src={items.variants?.[0]?.thumbnail || "/api/placeholder/300/300"}
-              alt={items.productName}
-              className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110"
-            />
-
-            {/* Overlay gradient */}
-            <div
-              className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent opacity-0 
-                           group-hover:opacity-100 transition-opacity duration-300"
-            />
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="px-6 pb-6">
-          {/* Rating */}
-          <div className="flex items-center gap-1 mb-2">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <Star
-                key={star}
-                size={14}
-                className="text-yellow-400 fill-current"
-              />
-            ))}
-            <span className="text-sm text-gray-500 ml-2">(4.8)</span>
-          </div>
-
-          {/* Product Name */}
-          <h3 className="font-bold text-lg text-gray-800 mb-3 line-clamp-2 leading-tight">
-            {items.productName}
-          </h3>
-
-          {/* Price */}
-          {items.price && (
-            <div className="flex items-center gap-2 mb-4">
-              {items.discountPrice ? (
-                <>
-                  <span className="text-2xl font-bold text-gray-800">
-                    ₹{items.discountPrice.toLocaleString()}
-                  </span>
-                  <span className="text-lg text-gray-400 line-through">
-                    ₹{items.price.toLocaleString()}
-                  </span>
-                </>
-              ) : (
-                <span className="text-2xl font-bold text-gray-800">
-                  ₹{items.price.toLocaleString()}
-                </span>
-              )}
-            </div>
-          )}
-
-          {/* Action Buttons */}
-          <div className="flex gap-3">
-            <button
-              onClick={() => navigate(`/products/${items.slug}`)}
-              className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 
-                             rounded-xl font-semibold flex items-center justify-center gap-2 
-                             hover:from-blue-700 hover:to-purple-700 transform hover:scale-105 
-                             transition-all duration-200 shadow-lg hover:shadow-xl"
-            >
-              <ShoppingCart size={18} />
-              Buy Now
-            </button>
-            <button
-              onClick={handleWishlistToggle}
-              className="px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold
-                             hover:border-gray-400 hover:bg-gray-50 transition-all duration-200"
-            >
-              <Heart size={18} />
-            </button>
-          </div>
-        </div>
-
-        {/* Animated background pattern */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div
-            className={`absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br from-blue-200/20 to-purple-200/20 
-                         rounded-full blur-3xl transition-all duration-1000 ${
-                           isHovered
-                             ? "scale-150 opacity-100"
-                             : "scale-100 opacity-0"
-                         }`}
-          />
-          <div
-            className={`absolute -bottom-20 -left-20 w-40 h-40 bg-gradient-to-br from-pink-200/20 to-orange-200/20 
-                         rounded-full blur-3xl transition-all duration-1000 delay-200 ${
-                           isHovered
-                             ? "scale-150 opacity-100"
-                             : "scale-100 opacity-0"
-                         }`}
-          />
+          </button>
         </div>
       </div>
-    </div>
+
+      <AuthPromptModal
+        open={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+      />
+    </article>
   );
 };
+
+/** Small round icon button used inside the media area. */
+const IconButton = ({ children, label, onClick, disabled, active }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    disabled={disabled}
+    aria-label={label}
+    className={`inline-flex h-8 w-8 items-center justify-center rounded-full border backdrop-blur-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2 disabled:opacity-60 ${
+      active
+        ? "border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100"
+        : "border-neutral-200 bg-white/90 text-neutral-700 hover:bg-white"
+    }`}
+  >
+    {children}
+  </button>
+);
+
 export default ProductsCard;

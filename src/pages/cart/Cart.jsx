@@ -207,7 +207,10 @@ const Cart = () => {
             <span>Total</span>
             <span>Rs.{subtotal + shippingCharge}</span>
           </div>
-          <button className="w-full mt-5 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
+          <button
+            onClick={() => navigate("/checkout")}
+            className="w-full mt-5 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+          >
             Proceed to Checkout
           </button>
         </div>

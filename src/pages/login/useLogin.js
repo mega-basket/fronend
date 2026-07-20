@@ -9,7 +9,8 @@ export const useSignUp = () => {
     mutationFn: async (formData) => {
       const res = await axios.post(
         `${import.meta.env.VITE_BASE_URL}${apiPath.createUser}`,
-        formData
+        formData,
+        { withCredentials: true }
       );
       return res.data;
     },
@@ -22,7 +23,8 @@ export const useLogin = () => {
     mutationFn: async (formData) => {
       const res = await axios.post(
         `${import.meta.env.VITE_BASE_URL}${apiPath.login}`,
-        formData
+        formData,
+        { withCredentials: true }
       );
       return res.data;
     },

@@ -10,6 +10,10 @@ import ProductDetails from "./pages/categories/fashion/components/ProductDetails
 import Products from "./pages/categories/fashion/Products";
 import Wishlist from "./pages/wishlist/Wishlist";
 import Cart from "./pages/cart/Cart";
+import Checkout from "./pages/checkout/Checkout";
+import OrderSuccess from "./pages/checkout/OrderSuccess";
+import PaymentStatus from "./pages/checkout/PaymentStatus";
+import Orders from "./pages/orders/Orders";
 
 function App() {
   // JS: prevent scroll increment
@@ -36,6 +40,10 @@ function App() {
             <Route path="/products/:slug" element={<ProductDetails />} />
             <Route path="/wishlist" element={<Wishlist />} />
             <Route path="/cart" element={<Cart />} />
+            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/order-success" element={<OrderSuccess />} />
+            <Route path="/payment-status" element={<PaymentStatus />} />
+            <Route path="/orders" element={<Orders />} />
           </Route>
 
           {/* Pages without Layout */}
