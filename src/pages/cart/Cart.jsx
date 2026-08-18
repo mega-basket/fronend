@@ -7,6 +7,7 @@ import {
   useRemoveFromCart,
   useUpdateCartQuantity,
 } from "../../api/component/Cart";
+import EmptyCart from "../../assets/empty-cart.png";
 
 const Cart = () => {
   const navigate = useNavigate();
@@ -17,9 +18,36 @@ const Cart = () => {
 
   if (isLoading) return <p className="text-center mt-10">Loading...</p>;
   if (error) return <p className="text-center mt-10">Error loading cart</p>;
-  if (cartItems.length === 0)
-    return <p className="text-center mt-10">Your cart is empty.</p>;
-
+  if (cartItems.length === 0) {
+    return (
+      <div className="min-h-[75vh] flex items-center justify-center px-6">
+        <div className="max-w-lg text-center">
+          <img
+            src={EmptyCart}
+            alt="Empty Cart"
+            className="w-72 md:w-96 mx-auto object-contain"
+          />
+  
+          <h2 className="mt-6 text-3xl md:text-4xl font-bold text-gray-900">
+            Your cart is empty
+          </h2>
+  
+          <p className="mt-4 text-gray-500 text-lg leading-7">
+            Looks like you haven't added anything to your cart yet.
+            <br />
+            Start shopping to fill it with amazing products.
+          </p>
+  
+          <button
+            onClick={() => navigate("/")}
+            className="mt-8 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-xl shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 active:scale-95"
+          >
+            Continue Shopping
+          </button>
+        </div>
+      </div>
+    );
+  }
   const handleQuantityChange = (item, newQty) => {
     if (newQty < 1) return;
     updateQuantity.mutate(
@@ -31,9 +59,9 @@ const Cart = () => {
       {
         onError: (err) =>
           toast.error(
-            err.response?.data?.message || "Failed to update quantity"
+            err.response?.data?.message || "Failed to update quantity",
           ),
-      }
+      },
     );
   };
 
@@ -51,21 +79,21 @@ const Cart = () => {
         onSuccess: () => {
           removeFromCart.mutate(
             { cartItemId: item._id },
-            { onSuccess: () => toast.success("Cart updated") }
+            { onSuccess: () => toast.success("Cart updated") },
           );
         },
         onError: (err) =>
           toast.error(
-            err.response?.data?.message || "Failed to change variant"
+            err.response?.data?.message || "Failed to change variant",
           ),
-      }
+      },
     );
   };
 
   const handleRemove = (item) => {
     removeFromCart.mutate(
       { cartItemId: item._id },
-      { onSuccess: () => toast.success("Removed from cart") }
+      { onSuccess: () => toast.success("Removed from cart") },
     );
   };
 
@@ -116,9 +144,7 @@ const Cart = () => {
                             ? v.color?.name
                             : `${v.color?.name} (Out of stock)`
                         }
-                        disabled={
-                          v.stockQuantity < 1 || addToCart.isPending
-                        }
+                        disabled={v.stockQuantity < 1 || addToCart.isPending}
                         onClick={() => handleVariantChange(item, v._id)}
                         className={`w-6 h-6 rounded-full border-2 transition ${
                           item.variant?._id === v._id
@@ -158,7 +184,9 @@ const Cart = () => {
                 {/* Quantity controls */}
                 <div className="mt-3 flex items-center gap-3">
                   <button
-                    onClick={() => handleQuantityChange(item, item.quantity - 1)}
+                    onClick={() =>
+                      handleQuantityChange(item, item.quantity - 1)
+                    }
                     disabled={item.quantity <= 1 || updateQuantity.isPending}
                     className="p-1.5 border rounded hover:bg-gray-100 disabled:opacity-40"
                   >
@@ -168,7 +196,9 @@ const Cart = () => {
                     {item.quantity}
                   </span>
                   <button
-                    onClick={() => handleQuantityChange(item, item.quantity + 1)}
+                    onClick={() =>
+                      handleQuantityChange(item, item.quantity + 1)
+                    }
                     disabled={updateQuantity.isPending}
                     className="p-1.5 border rounded hover:bg-gray-100 disabled:opacity-40"
                   >
@@ -200,7 +230,9 @@ const Cart = () => {
           </div>
           <div className="flex justify-between mb-2 text-gray-700">
             <span>Shipping</span>
-            <span>{shippingCharge === 0 ? "Free" : `Rs.${shippingCharge}`}</span>
+            <span>
+              {shippingCharge === 0 ? "Free" : `Rs.${shippingCharge}`}
+            </span>
           </div>
           <hr className="my-3" />
           <div className="flex justify-between font-bold text-lg">

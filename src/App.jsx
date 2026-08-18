@@ -14,6 +14,7 @@ import Checkout from "./pages/checkout/Checkout";
 import OrderSuccess from "./pages/checkout/OrderSuccess";
 import PaymentStatus from "./pages/checkout/PaymentStatus";
 import Orders from "./pages/orders/Orders";
+import Categories from "./pages/categories/Categories";
 
 function App() {
   // JS: prevent scroll increment
@@ -44,6 +45,7 @@ function App() {
             <Route path="/order-success" element={<OrderSuccess />} />
             <Route path="/payment-status" element={<PaymentStatus />} />
             <Route path="/orders" element={<Orders />} />
+            <Route path="/categories" element={<Categories />} />
           </Route>
 
           {/* Pages without Layout */}

@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 const CategoryGrid = ({ categories }) => {
   const navigate = useNavigate();
@@ -11,12 +11,12 @@ const CategoryGrid = ({ categories }) => {
         <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight">
           Shop by Category
         </h2>
-        <a
+        <Link
           className="text-indigo-600 hover:text-indigo-700 font-semibold"
-          href="#"
+          to="/categories"
         >
           See all
-        </a>
+        </Link>
       </div>
 
       {/* Categories Grid */}

@@ -4,7 +4,8 @@ import {
   useGetWishlist,
   useRemoveFromWishlist,
 } from "../../api/component/useWishlist";
-import { Star } from "lucide-react";
+import { ArrowRight, Star } from "lucide-react";
+import WishList from "../../assets/empty-wishlist.png";
 
 const Wishlist = () => {
   const navigate = useNavigate();
@@ -33,9 +34,32 @@ const Wishlist = () => {
 
   if (!wishlist || wishlist.length === 0) {
     return (
-      <p className="flex items-center justify-center font-bold text-lg">
-        Your wishlist is empty.
-      </p>
+      <div className="min-h-[75vh] flex items-center justify-center px-6">
+        <div className="max-w-md text-center">
+          <img
+            src={WishList}
+            alt="Empty Wishlist"
+            className="w-72 h-72 mx-auto object-contain"
+          />
+
+          <h2 className="mt-6 text-3xl font-bold text-gray-900">
+            Your wishlist is empty
+          </h2>
+
+          <p className="mt-3 text-gray-500 leading-7">
+            Save your favorite products here so you can easily find and purchase
+            them later.
+          </p>
+
+          <button
+            onClick={() => navigate("/")}
+            className="mt-8 inline-flex items-center gap-2 rounded-xl bg-pink-600 px-8 py-3 text-white font-semibold shadow-lg transition-all duration-300 hover:bg-pink-700 hover:shadow-xl"
+          >
+            Explore Products
+            <ArrowRight size={18} />
+          </button>
+        </div>
+      </div>
     );
   }
 
