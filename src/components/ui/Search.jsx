@@ -1,7 +1,45 @@
 import { useEffect, useRef, useState } from "react";
-import { Search, X, Loader2 } from "lucide-react";
+import { Search, X, Loader2, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useSearchProducts } from "../../api/component/productApi";
+import { cdnImage } from "../../utils/image";
+
+const RECENT_KEY = "recentSearches";
+const MAX_RECENT = 5;
+
+const loadRecent = () => {
+  try {
+    const list = JSON.parse(localStorage.getItem(RECENT_KEY) || "[]");
+    return Array.isArray(list) ? list : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveRecent = (list) => {
+  try {
+    localStorage.setItem(RECENT_KEY, JSON.stringify(list));
+  } catch {
+    /* storage blocked — not critical */
+  }
+};
+
+const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/** Bolds the part of `text` that matches what the user typed. */
+const Highlight = ({ text = "", query }) => {
+  if (!query) return text;
+  const parts = text.split(new RegExp(`(${escapeRegex(query)})`, "ig"));
+  return parts.map((part, i) =>
+    part.toLowerCase() === query.toLowerCase() ? (
+      <mark key={i} className="bg-transparent font-semibold text-neutral-900">
+        {part}
+      </mark>
+    ) : (
+      <span key={i}>{part}</span>
+    )
+  );
+};
 
 /**
  * SearchInput
@@ -12,6 +50,8 @@ import { useSearchProducts } from "../../api/component/productApi";
  * - Click-outside closes the dropdown.
  * - Handles loading and empty states.
  * - Guards against missing variant/thumbnail.
+ * - Remembers the last few searches and shows them when the box is empty.
+ * - Bolds the matching part of each suggestion.
  *
  * Props:
  *   autoFocus  – focus the input on mount
@@ -22,6 +62,7 @@ const SearchInput = ({ autoFocus = false, onSelect }) => {
   const [debounced, setDebounced] = useState("");
   const [open, setOpen] = useState(false);
   const [highlight, setHighlight] = useState(-1);
+  const [recent, setRecent] = useState(loadRecent);
 
   const inputRef = useRef(null);
   const wrapperRef = useRef(null);
@@ -36,8 +77,35 @@ const SearchInput = ({ autoFocus = false, onSelect }) => {
   const { data: rawResults, isFetching } = useSearchProducts(debounced);
   const results = Array.isArray(rawResults) ? rawResults : [];
 
-  const showDropdown =
-    open && debounced.length > 0 && (isFetching || results.length >= 0);
+  // While the input is empty, the dropdown shows recent searches instead.
+  const showRecent = open && !value.trim() && recent.length > 0;
+  const showDropdown = open && debounced.length > 0;
+
+  const rememberSearch = (term) => {
+    const t = term.trim();
+    if (!t) return;
+    const next = [t, ...recent.filter((r) => r.toLowerCase() !== t.toLowerCase())].slice(0, MAX_RECENT);
+    setRecent(next);
+    saveRecent(next);
+  };
+
+  const removeRecent = (term) => {
+    const next = recent.filter((r) => r !== term);
+    setRecent(next);
+    saveRecent(next);
+  };
+
+  const goToResults = (term) => {
+    const t = term.trim();
+    if (!t) return;
+    rememberSearch(t);
+    navigate(`/products?q=${encodeURIComponent(t)}`);
+    setValue(t);
+    setOpen(false);
+    setHighlight(-1);
+    inputRef.current?.blur();
+    onSelect?.();
+  };
 
   /* --------------------------- Keyboard shortcut ---------------------------- */
   useEffect(() => {
@@ -72,6 +140,7 @@ const SearchInput = ({ autoFocus = false, onSelect }) => {
 
   /* --------------------------- Handlers ------------------------------------ */
   const handleSelect = (product) => {
+    rememberSearch(debounced);
     navigate(`/products/${product.slug}`);
     setValue("");
     setDebounced("");
@@ -87,9 +156,9 @@ const SearchInput = ({ autoFocus = false, onSelect }) => {
       return;
     }
     if (!showDropdown || results.length === 0) {
-      if (e.key === "Enter" && debounced) {
-        navigate(`/products?q=${encodeURIComponent(debounced)}`);
-        setOpen(false);
+      if (e.key === "Enter" && value.trim()) {
+        e.preventDefault();
+        goToResults(value);
       }
       return;
     }
@@ -104,8 +173,7 @@ const SearchInput = ({ autoFocus = false, onSelect }) => {
       if (highlight >= 0) {
         handleSelect(results[highlight]);
       } else {
-        navigate(`/products?q=${encodeURIComponent(debounced)}`);
-        setOpen(false);
+        goToResults(value);
       }
     }
   };
@@ -145,7 +213,7 @@ const SearchInput = ({ autoFocus = false, onSelect }) => {
           placeholder="Search products, brands…"
           className="w-full bg-transparent py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none"
           role="combobox"
-          aria-expanded={showDropdown}
+          aria-expanded={showDropdown || showRecent}
           aria-controls="search-listbox"
           aria-autocomplete="list"
         />
@@ -164,6 +232,47 @@ const SearchInput = ({ autoFocus = false, onSelect }) => {
           </kbd>
         )}
       </div>
+
+      {/* Recent searches (empty input) */}
+      {showRecent && (
+        <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-lg">
+          <div className="flex items-center justify-between border-b border-neutral-100 px-4 py-2">
+            <p className="text-[11px] font-medium uppercase tracking-wider text-neutral-400">Recent searches</p>
+            <button
+              type="button"
+              onClick={() => {
+                setRecent([]);
+                saveRecent([]);
+              }}
+              className="text-xs font-medium text-neutral-500 hover:text-neutral-900"
+            >
+              Clear
+            </button>
+          </div>
+          <ul className="py-1">
+            {recent.map((term) => (
+              <li key={term} className="group flex items-center">
+                <button
+                  type="button"
+                  onClick={() => goToResults(term)}
+                  className="flex flex-1 items-center gap-3 px-4 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-50"
+                >
+                  <Clock size={14} className="shrink-0 text-neutral-400" />
+                  <span className="truncate">{term}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => removeRecent(term)}
+                  className="mr-2 rounded p-1 text-neutral-300 hover:bg-neutral-100 hover:text-neutral-600"
+                  aria-label={`Remove "${term}" from recent searches`}
+                >
+                  <X size={13} />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Dropdown */}
       {showDropdown && (
@@ -197,8 +306,7 @@ const SearchInput = ({ autoFocus = false, onSelect }) => {
               </p>
               <ul className="py-1">
                 {results.map((item, index) => {
-                  const thumb =
-                    item?.variants?.[0]?.thumbnail || "/api/placeholder/48/48";
+                  const thumb = cdnImage(item?.variants?.[0]?.thumbnail, 96) || "/api/placeholder/48/48";
                   const active = highlight === index;
                   return (
                     <li key={item._id} role="option" aria-selected={active}>
@@ -215,10 +323,11 @@ const SearchInput = ({ autoFocus = false, onSelect }) => {
                           alt=""
                           className="h-10 w-10 shrink-0 rounded-md object-cover"
                           loading="lazy"
+                          decoding="async"
                         />
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium text-neutral-900">
-                            {item.productName}
+                          <p className="truncate text-sm text-neutral-600">
+                            <Highlight text={item.productName} query={debounced} />
                           </p>
                           <p className="truncate text-xs text-neutral-500">
                             {item.brand || item.categoryId?.categoryName || "—"}
@@ -239,10 +348,7 @@ const SearchInput = ({ autoFocus = false, onSelect }) => {
               </ul>
               <button
                 type="button"
-                onClick={() => {
-                  navigate(`/products?q=${encodeURIComponent(debounced)}`);
-                  setOpen(false);
-                }}
+                onClick={() => goToResults(debounced)}
                 className="flex w-full items-center justify-center border-t border-neutral-100 px-4 py-2.5 text-xs font-medium text-neutral-700 hover:bg-neutral-50"
               >
                 See all results for “{debounced}”

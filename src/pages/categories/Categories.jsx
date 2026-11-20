@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { useGetCategory } from "../../api/component/Category";
+import { imgProps } from "../../utils/image";
 
 /**
  * CategoriesPage
@@ -87,7 +88,7 @@ const CategoryCard = ({ category, onClick }) => {
       <div className="relative overflow-hidden bg-neutral-100">
         {category.categoryImage ? (
           <img
-            src={category.categoryImage}
+            {...imgProps(category.categoryImage, 400)}
             alt={category.categoryName}
             className="aspect-video w-full object-cover transition-transform duration-300 group-hover:scale-105"
           />

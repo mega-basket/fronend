@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { X, LogIn } from "lucide-react";
 
 /**
@@ -14,12 +14,14 @@ const AuthPromptModal = ({
   message = "Log in or create an account to add items to your cart and wishlist.",
 }) => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   if (!open) return null;
 
   const goTo = (path) => {
     onClose();
-    navigate(path);
+    // Remember this page so login/signup can return the user here.
+    navigate(path, { state: { from: location } });
   };
 
   return (

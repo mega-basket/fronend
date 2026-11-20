@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
-import { Loader2, XCircle } from "lucide-react";
+import { XCircle } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { fetchOrderByPaymentIntent } from "../../api/component/useOrder";
+import { PageLoader } from "../../components/ui/Spinner";
+import Button from "../../components/ui/Button";
 
 // Landing page for redirect-based Stripe payments (return_url).
 // Reads ?payment_intent=... from the URL, confirms the order with the
@@ -44,40 +46,28 @@ const PaymentStatus = () => {
 
   if (failed)
     return (
-      <div className="max-w-lg mx-auto text-center py-24 px-4">
-        <XCircle size={64} className="text-red-500 mx-auto" />
-        <h1 className="text-2xl font-bold mt-6">Payment not completed</h1>
-        <p className="text-gray-600 mt-2">
+      <div className="mx-auto max-w-lg px-4 py-24 text-center">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-rose-50">
+          <XCircle size={36} className="text-rose-600" />
+        </div>
+        <h1 className="mt-6 text-2xl font-bold text-neutral-900">Payment not completed</h1>
+        <p className="mt-2 text-neutral-500">
           Your payment didn't go through or is still processing. If money was
           deducted, check My Orders in a few minutes — no order means no
           charge is kept.
         </p>
-        <div className="flex gap-3 justify-center mt-8">
-          <Link
-            to="/checkout"
-            className="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition"
-          >
+        <div className="mt-8 flex justify-center gap-3">
+          <Button as={Link} to="/checkout">
             Try Again
-          </Link>
-          <Link
-            to="/orders"
-            className="border px-6 py-3 rounded-xl font-semibold hover:bg-gray-50 transition"
-          >
+          </Button>
+          <Button as={Link} to="/orders" variant="outline">
             My Orders
-          </Link>
+          </Button>
         </div>
       </div>
     );
 
-  return (
-    <div className="max-w-lg mx-auto text-center py-24 px-4">
-      <Loader2 size={56} className="mx-auto animate-spin text-blue-600" />
-      <h1 className="text-2xl font-bold mt-6">Confirming your payment…</h1>
-      <p className="text-gray-600 mt-2">
-        Hold on a moment while we place your order.
-      </p>
-    </div>
-  );
+  return <PageLoader label="Confirming your payment…" />;
 };
 
 export default PaymentStatus;

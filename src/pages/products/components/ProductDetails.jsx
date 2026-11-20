@@ -16,20 +16,23 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 
-import { useGetProductById } from "../../../../api/component/productApi";
+import { useGetProductById } from "../../../api/component/productApi";
 import {
   useGetWishlist,
   useRemoveFromWishlist,
   useWishlist,
-} from "../../../../api/component/useWishlist";
+} from "../../../api/component/useWishlist";
 import {
   useGetToCart,
   useAddToCart,
   useRemoveFromCart,
-} from "../../../../api/component/Cart";
-import { useIsLoggedIn } from "../../../../hooks/useAuth";
-import AuthPromptModal from "../../../../components/ui/AuthPromptModal";
+} from "../../../api/component/Cart";
+import { useIsLoggedIn } from "../../../hooks/useAuth";
+import AuthPromptModal from "../../../components/ui/AuthPromptModal";
 import ReviewsSection from "./ReviewsSection";
+import { imgProps } from "../../../utils/image";
+import { addRecentlyViewed } from "../../../hooks/useRecentlyViewed";
+import RecentlyViewed from "../../../components/home/RecentlyViewed";
 
 /**
  * ProductDetails
@@ -81,6 +84,11 @@ const ProductDetails = () => {
   }, [cartData, product, selectedVariant]);
   const isInCart = !!cartItem;
 
+  // Remember this product for the "Recently viewed" strip.
+  useEffect(() => {
+    if (product) addRecentlyViewed(product);
+  }, [product]);
+
   useEffect(() => {
     if (selectedVariant?.thumbnail) setMainImage(selectedVariant.thumbnail);
     setQuantity(1);
@@ -93,7 +101,7 @@ const ProductDetails = () => {
     if (!product) return;
     const mutation = isWishlisted ? removeWishlist : addWishlist;
     mutation.mutate(
-      { productId: product._id },
+      { productId: product._id, product },
       {
         onSuccess: () =>
           toast.success(
@@ -228,7 +236,8 @@ const ProductDetails = () => {
         <section aria-label="Product images">
           <div className="relative overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-50">
             <img
-              src={mainImage}
+              {...imgProps(mainImage, 640, { priority: true })}
+              sizes="(min-width: 1024px) 560px, 100vw"
               alt={product.productName}
               className="aspect-square w-full object-cover"
             />
@@ -281,7 +290,7 @@ const ProductDetails = () => {
                     aria-current={selected}
                   >
                     <img
-                      src={img}
+                      {...imgProps(img, 80)}
                       alt=""
                       className="h-16 w-16 object-cover sm:h-20 sm:w-20"
                     />
@@ -607,6 +616,8 @@ const ProductDetails = () => {
           </button>
         </div>
       </div>
+
+      <RecentlyViewed excludeId={product._id} title="You recently viewed" className="mt-12" />
 
       <AuthPromptModal
         open={authModalOpen}

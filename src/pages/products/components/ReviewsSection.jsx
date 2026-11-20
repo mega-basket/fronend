@@ -6,7 +6,7 @@ import {
   useCreateReview,
   useUpdateReview,
   useDeleteReview,
-} from "../../../../api/component/useReviews";
+} from "../../../api/component/useReviews";
 
 /**
  * ReviewsSection

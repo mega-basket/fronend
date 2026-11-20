@@ -17,7 +17,8 @@ export const useSignUp = () => {
   });
 };
 
-export const useLogin = () => {
+// `redirectTo` is where the user was headed before being sent to login.
+export const useLogin = (redirectTo = "/") => {
   const navigate = useNavigate();
   return useMutation({
     mutationFn: async (formData) => {
@@ -33,10 +34,7 @@ export const useLogin = () => {
       localStorage.setItem("user", JSON.stringify(data));
       localStorage.setItem("token", data.accessToken);
 
-      navigate("/");
-    },
-    onError: () => {
-      toast.error("Login Failed");
+      navigate(redirectTo, { replace: true });
     },
   });
 };

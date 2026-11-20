@@ -1,6 +1,4 @@
-import React from 'react'
-
-const logo = () => {
+const Logo = () => {
   return (
     <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -85,4 +83,4 @@ const logo = () => {
   )
 }
 
-export default logo
+export default Logo;

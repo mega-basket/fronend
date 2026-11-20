@@ -6,9 +6,10 @@ import {
   useGetWishlist,
   useRemoveFromWishlist,
   useWishlist,
-} from "../../../../api/component/useWishlist";
-import { useIsLoggedIn } from "../../../../hooks/useAuth";
-import AuthPromptModal from "../../../../components/ui/AuthPromptModal";
+} from "../../../api/component/useWishlist";
+import { useIsLoggedIn } from "../../../hooks/useAuth";
+import AuthPromptModal from "../../../components/ui/AuthPromptModal";
+import { imgProps } from "../../../utils/image";
 
 /**
  * ProductsCard
@@ -61,7 +62,7 @@ const ProductsCard = ({ items, onQuickView }) => {
       );
     } else {
       addWishlist.mutate(
-        { productId: items._id },
+        { productId: items._id, product: items },
         {
           onSuccess: () => toast.success("Added to wishlist"),
           onError: () => toast.error("Couldn't update wishlist"),
@@ -90,9 +91,9 @@ const ProductsCard = ({ items, onQuickView }) => {
         )}
 
         <img
-          src={thumbnail}
+          {...imgProps(thumbnail, 400)}
+          sizes="(min-width: 1024px) 320px, (min-width: 640px) 50vw, 100vw"
           alt={items?.productName || "Product image"}
-          loading="lazy"
           onLoad={() => setImgLoaded(true)}
           className={`h-full w-full object-cover transition-[opacity,transform] duration-500 ease-out group-hover:scale-[1.03] ${
             imgLoaded ? "opacity-100" : "opacity-0"

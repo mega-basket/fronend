@@ -62,5 +62,31 @@ export const useGetOrders = () => {
       const res = await apiService.get(apiPath.getOrders);
       return res.data.orders || [];
     },
+    // Keep the order card in sync if an admin reviews a cancellation/return
+    // while the customer is viewing their orders page.
+    refetchInterval: 30_000,
   });
 };
+
+const useOrderRequest = (action) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ orderId, reason }) => {
+      const { data } = await apiService.post(
+        `order/${orderId}/${action}`,
+        { reason }
+      );
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+    },
+  });
+};
+
+export const useRequestOrderCancellation = () =>
+  useOrderRequest("cancel-request");
+
+export const useRequestOrderReturn = () =>
+  useOrderRequest("return-request");

@@ -1,27 +1,47 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import React from "react";
 import apiService from "../apiService";
 import { apiPath } from "../apiPath";
 
+const WISHLIST_KEY = ["getWishlist"];
+
+/**
+ * Optimistic update helpers: the heart fills/empties instantly, rolls back
+ * if the request fails, and re-syncs with the server afterwards.
+ */
+const optimisticWishlist = (queryClient, applyChange) => ({
+  onMutate: async (variables) => {
+    await queryClient.cancelQueries({ queryKey: WISHLIST_KEY });
+    const previous = queryClient.getQueryData(WISHLIST_KEY);
+    queryClient.setQueryData(WISHLIST_KEY, (list) => applyChange(Array.isArray(list) ? list : [], variables));
+    return { previous };
+  },
+  onError: (_err, _variables, context) => {
+    queryClient.setQueryData(WISHLIST_KEY, context?.previous);
+  },
+  onSettled: () => queryClient.invalidateQueries({ queryKey: WISHLIST_KEY }),
+});
+
+/**
+ * Add to wishlist. Pass `product` (the full product object) alongside
+ * `productId` so it can appear in the wishlist immediately; only
+ * `productId` is sent to the server.
+ */
 export const useWishlist = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data) => {
-      const res = await apiService.post(apiPath.addToWishlist, data);
-      console.log("wishlist res:", res);
-
+    mutationFn: async ({ productId }) => {
+      const res = await apiService.post(apiPath.addToWishlist, { productId });
       return res;
     },
-    onSuccess: () => {
-      // 🔑 force a refetch of the wishlist
-      queryClient.invalidateQueries(["getWishlist"]);
-    },
+    ...optimisticWishlist(queryClient, (list, { productId, product }) =>
+      list.some((p) => p._id === productId) ? list : [...list, product || { _id: productId }]
+    ),
   });
 };
 
 export const useGetWishlist = () => {
   return useQuery({
-    queryKey: ["getWishlist"],
+    queryKey: WISHLIST_KEY,
     queryFn: async () => {
       const res = await apiService.get(apiPath.getWishlist);
       return res.data.wishList;
@@ -32,15 +52,12 @@ export const useGetWishlist = () => {
 export const useRemoveFromWishlist = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (payload) => {
+    mutationFn: async ({ productId }) => {
       const res = await apiService.delete(apiPath.removeWishlist, {
-        data: { productId: payload.productId },
+        data: { productId },
       });
       return res;
     },
-    onSuccess: () => {
-      // 🔑 force a refetch of the wishlist
-      queryClient.invalidateQueries(["wishlist"]);
-    },
+    ...optimisticWishlist(queryClient, (list, { productId }) => list.filter((p) => p._id !== productId)),
   });
 };

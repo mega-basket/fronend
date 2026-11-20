@@ -81,14 +81,16 @@ export const useCategoryProducts = ({
   });
 };
 
-export const useSearchProducts = (query) => {
+/** Live search suggestions for the header search box (top 6 matches). */
+export const useSearchProducts = (query, limit = 6) => {
   return useQuery({
-    queryKey: ["searchProducts", query],
+    queryKey: ["searchProducts", query, limit],
     enabled: !!query, // only run if query is not empty
+    placeholderData: keepPreviousData, // keep old suggestions while typing
+    staleTime: 60_000,
     queryFn: async () => {
-      const res = await apiService.get(
-        `${apiPath.getProducts}?search=${query}`
-      );
+      const params = new URLSearchParams({ search: query, limit: String(limit) });
+      const res = await apiService.get(`${apiPath.getProducts}?${params}`);
       return res.data.products || [];
     },
   });

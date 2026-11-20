@@ -8,6 +8,8 @@ import {
 import toast from "react-hot-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { fetchOrderByPaymentIntent } from "../../api/component/useOrder";
+import Button from "../../components/ui/Button";
+import { formatInr } from "../../components/ui/formatInr";
 
 // Rendered inside <Elements> with a clientSecret. Confirms the payment and
 // then asks the backend for the order created by the webhook (or fallback).
@@ -69,23 +71,14 @@ const StripePaymentForm = ({ totalAmount, onCancel }) => {
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <PaymentElement />
       <div className="flex gap-3">
-        <button
-          type="submit"
-          disabled={!stripe || processing}
-          className="flex-1 bg-orange-500 text-white py-3.5 rounded-xl font-semibold hover:bg-orange-600 transition disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          {processing ? "Processing…" : `Pay Rs.${totalAmount}`}
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={processing}
-          className="px-5 py-3.5 rounded-xl border font-semibold hover:bg-gray-50 transition disabled:opacity-40"
-        >
+        <Button type="submit" fullWidth size="lg" disabled={!stripe} loading={processing}>
+          {processing ? "Processing…" : `Pay ${formatInr(totalAmount)}`}
+        </Button>
+        <Button type="button" variant="outline" size="lg" onClick={onCancel} disabled={processing}>
           Cancel
-        </button>
+        </Button>
       </div>
-      <p className="text-xs text-gray-400 text-center">
+      <p className="text-center text-xs text-neutral-400">
         Payments are securely processed by Stripe.
       </p>
     </form>

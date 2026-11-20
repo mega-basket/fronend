@@ -1,26 +1,28 @@
-import Hero from "../Hero";
-import CategoryGrid from "../CategoryGrid";
+import Hero from "./Hero";
+import CategoryGrid from "./CategoryGrid";
+import PromoBanner from "./PromoBanner";
+import WhyShopWithUs from "./WhyShopWithUs";
+import PopularProducts from "./PopularProducts";
+import RecentlyViewed from "./RecentlyViewed";
 import { useGetCategory } from "../../api/component/Category";
-import PopulerProduct from "../../pages/popularProduct/PopularProduct";
 import { usePopularProducts } from "../../api/component/productApi";
+import { PageError } from "../ui/Spinner";
 
 const Home = () => {
-  const { data: categories, isLoading, error } = useGetCategory(); // Destructure for clarity
-  const { data: popularProducts } = usePopularProducts();
-  console.log("popularProducts", popularProducts);
+  const { data: categories, isLoading: categoriesLoading, error } = useGetCategory();
+  const { data: popularProducts, isLoading: productsLoading } = usePopularProducts();
 
-  if (isLoading)
-    return <p className="text-center mt-10">Loading categories...</p>;
-  if (error)
-    return <p className="text-center mt-10">Error loading categories</p>;
+  if (error) return <PageError label="Couldn't load categories. Please try again." />;
 
   return (
     <div>
-      {/* Hero Section */}
-      <Hero />
+      <Hero categories={categories || []} />
       <div className="mx-auto max-w-7xl">
-        <CategoryGrid categories={categories} />
-        <PopulerProduct popularProducts={popularProducts} />
+        <RecentlyViewed />
+        <CategoryGrid categories={categories} isLoading={categoriesLoading} />
+        <PromoBanner />
+        <WhyShopWithUs />
+        <PopularProducts popularProducts={popularProducts} isLoading={productsLoading} />
       </div>
     </div>
   );

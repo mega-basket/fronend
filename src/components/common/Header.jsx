@@ -12,10 +12,10 @@ import {
   Settings,
   ChevronDown,
 } from "lucide-react";
-import Logo from "../assets/logo";
-import { useGetWishlist } from "../api/component/useWishlist";
-import { useGetToCart } from "../api/component/Cart";
-import SearchInput from "./ui/Search";
+import Logo from "./Logo";
+import { useGetWishlist } from "../../api/component/useWishlist";
+import { useGetToCart } from "../../api/component/Cart";
+import SearchInput from "../ui/Search";
 
 /**
  * Header
